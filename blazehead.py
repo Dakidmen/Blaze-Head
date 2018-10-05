@@ -10,16 +10,16 @@ screen_h = 480;
 window = pygame.display.set_mode((screen_w,screen_h)); #window size
 pygame.display.set_caption("Blaze Head"); #game name
 
-background = pygame.image.load('data/background.jpg').convert()
+background = pygame.image.load('data/background/background1.jpg').convert()
 bgX = 0;
 bgX2 = background.get_width();
 
 clock = pygame.time.Clock()
 
 #SOUND variables
-hitSound = pygame.mixer.Sound('data/hit.wav');
-bulletSound = pygame.mixer.Sound('data/bullet.wav');
-music = pygame.mixer.music.load('data/music.wav');
+hitSound = pygame.mixer.Sound('data/sound/hit.wav');
+bulletSound = pygame.mixer.Sound('data/sound/bullet.wav');
+music = pygame.mixer.music.load('data/sound/music.wav');
 pygame.mixer.music.play(-1);
 
 class player(object):
@@ -85,10 +85,23 @@ class player(object):
                     i = 201;
                     pygame.quit()
 
+    def collision(self,tx,ty,tw,th):
+        self.isJump = False;
+        self.jumpCount = 10;
+
+        if self.y > ty:
+            self.y = 410;
+        if not(tx-th/2< self.x < tx+th/2) :
+            self.y = 410
+        
+
+        self.runCount = 0;
+        pygame.display.update();
+
 class projectile(object):
     '''Bullet'''
-    bullet_right = pygame.image.load('data/bulletR.png')
-    bullet_left = pygame.image.load('data/bulletL.png')
+    bullet_right = pygame.image.load('data/bullet/bulletR.png')
+    bullet_left = pygame.image.load('data/bullet/bulletL.png')
 
     def __init__(self,x,y,radius,color,facing):
         self.x = x;
@@ -159,6 +172,19 @@ class enemy(object):
         else:
             self.visible = False;
         
+class terrain(object):
+    block = pygame.image.load('data/terrain/block1.png')
+
+    def __init__(self,x,y,w,h):
+        self.x = x;
+        self.y = y;
+        self.w = w;
+        self.h = h;
+        self.hitbox = (self.x, self.y, self.w, self.h);
+    
+    def draw(self,window):
+        window.blit(self.block,(self.x,self.y));
+        pygame.draw.rect(window,(255,0,0), self.hitbox,2);
 
 def redrawGame():
     ''' Draws the game '''
@@ -166,6 +192,7 @@ def redrawGame():
     window.blit(background, (bgX2,0))
     hero.draw(window);
     goblin.draw(window)
+    platform.draw(window)
     text = font.render("Score: %s"%score,1,(255,255,255))
     window.blit(text, (370,10));
     for bullet in bullets:
@@ -174,18 +201,34 @@ def redrawGame():
 
 #GAME variables
 font = pygame.font.SysFont('comicsans',30,True);
-hero = player(200,410,64,64);
 bullets = [];
 fps = 30
 shootLoop = 0;
 score = 0
-goblin = enemy(100,410,64,64,450)
 pygame.time.set_timer(USEREVENT+1,1000*60); #half second = 500
+
+hero = player(200,410,64,64);
+goblin = enemy(100,410,64,64,450) #needs to add random event + coords
+platform = terrain(300,300,64,64)
+
+
 game = True;
 
 while game:
     redrawGame();
     
+    #COLLISION platform player
+    if hero.hitbox[1] < platform.hitbox[1] + platform.hitbox[3] and hero.hitbox[1] + hero.hitbox[3] > platform.hitbox[1]:
+        if hero.hitbox[0] + hero.hitbox[2] > platform.hitbox[0] and hero.hitbox[0] < platform.hitbox[0] + platform.hitbox[2]:
+            hero.collision(platform.x,platform.y,platform.w,platform.h)
+    #COLLISION goblin player
+    if goblin.visible == True:
+        #hitbox within x and y = collision
+        if hero.hitbox[1] < goblin.hitbox[1] + goblin.hitbox[3] and hero.hitbox[1] + hero.hitbox[3] > goblin.hitbox[1]:
+            if hero.hitbox[0] + hero.hitbox[2] > goblin.hitbox[0] and hero.hitbox[0] < goblin.hitbox[0] + goblin.hitbox[2]:
+                hero.hit();
+                score -= 5;
+
     #BULLET COOLDOWN:
     if shootLoop > 0:
         shootLoop += 1;
