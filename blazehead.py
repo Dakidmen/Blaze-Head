@@ -190,12 +190,16 @@ class terrain(object):
     def collision(self,what):
         if what.hitbox[1] < self.hitbox[1] + self.hitbox[3] and what.hitbox[1] + what.hitbox[3] > self.hitbox[1]:
             if what.hitbox[0] + what.hitbox[2] > self.hitbox[0] and what.hitbox[0] < self.hitbox[0] + self.hitbox[2]:
-                hitSound.play();
+                #hitSound.play();
                 return True
         else:
             return False
         
-                
+def event_block(count):
+    if count == 5:
+        return True
+    else:
+        return False
 
 def redrawGame():
     ''' Draws the game '''
@@ -203,7 +207,6 @@ def redrawGame():
     window.blit(background, (bgX2,0))
     hero.draw(window);
     goblin.draw(window)
-    platform.draw(window)
     text = font.render("Score: %s"%score,1,(255,255,255))
     window.blit(text, (370,10));
     for b in blocks:
@@ -213,18 +216,18 @@ def redrawGame():
     pygame.display.update();
 
 #GAME variables
+steps = 0;
 font = pygame.font.SysFont('comicsans',30,True);
 bullets = [];
 fps = 30
 shootLoop = 0;
 score = 0
-pygame.time.set_timer(USEREVENT+1,1000*60); #half second = 500
-pygame.time.set_timer(USEREVENT+2,2000); 
+pygame.time.set_timer(USEREVENT+1,1000*60); #half second = 500 
 blocks = []
-
+pygame.time.set_timer(USEREVENT+2,1000*2)
 hero = player(200,410,64,64);
 goblin = enemy(400,410,64,64,600) #needs to add random event + coords
-platform = terrain(300,300,64,64)
+#platform = terrain(300,300,64,64)
 
 
 game = True;
@@ -233,17 +236,13 @@ while game:
     redrawGame();
 
     for b in blocks:
-        if hero.x > screen_w/2:
+        if hero.x > screen_w/2 and keys[pygame.K_RIGHT]:
             b.x -= 1.4
             if b.x < b.w *-1:
                 blocks.pop(blocks.index(b));
         if b.collision(hero):
             hero.collision(b.x,b.y,b.w,b.h)
 
-    #COLLISION platform player
-    if hero.hitbox[1] < platform.hitbox[1] + platform.hitbox[3] and hero.hitbox[1] + hero.hitbox[3] > platform.hitbox[1]:
-        if hero.hitbox[0] + hero.hitbox[2] > platform.hitbox[0] and hero.hitbox[0] < platform.hitbox[0] + platform.hitbox[2]:
-            hero.collision(platform.x,platform.y,platform.w,platform.h)
     #COLLISION goblin player
     if goblin.visible == True:
         #hitbox within x and y = collision
@@ -283,21 +282,21 @@ while game:
     if event.type == USEREVENT+1:
         fps += 1
     #EVENTS +2
-    if event.type == USEREVENT+2:
-        blocks.append(terrain(100,300,64,64))
+    if event_block(steps) == True:
+        blocks.append(terrain(screen_w-64,300,64,64))
 
     #KEYS press
     keys = pygame.key.get_pressed();
 
     #shoot
     if keys[pygame.K_SPACE] and shootLoop == 0:
-        bulletSound.play();
         if hero.left :
             facing = -1
         else:
             facing = 1
 
         if len(bullets) < 3 :
+            bulletSound.play();
             bullets.append(projectile(round(hero.x + hero.w //2), round(hero.y+hero.h//2), 6, (0,94,255), facing))
         shootLoop = 1;
     
@@ -317,6 +316,7 @@ while game:
         hero.standing = False;
 
         if hero.x > screen_w/2:
+            steps += 1;
             hero.move = False;
             bgX -= 3.4
             bgX2 -= 3.4
