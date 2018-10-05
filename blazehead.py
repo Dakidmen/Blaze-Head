@@ -41,7 +41,7 @@ class player(object):
         self.vel = 5;
         self.isJump = False; #jumping
         self.isSlide = False; #sliding
-        self.jumpCount = 0;
+        self.jumpCount = 10;
         self.runCount = 0;
         self.slideUp = 0;
         self.left = False;
@@ -52,14 +52,6 @@ class player(object):
     def draw(self, window):
         if self.runCount + 1 >= 27:
             self.runCount = 0;
-        if self.isJump:
-            self.y -= self.jumpList[self.jumpCount] * 1.2
-            window.blit(self.jump, (self.x,self.y));
-            self.jumpCount += 1
-            if self.jumpCount > 108:
-                self.jumpCount = 0
-                self.isJump = False
-                self.runCount = 0
         if not (self.standing):
             if self.left:
                 window.blit(hero.walkLeft[self.runCount//3], (self.x,self.y))
@@ -145,7 +137,21 @@ while game:
             hero.right = False;
             hero.left = False;
             hero.runCount = 0;
+    else:
+        if hero.jumpCount >= -10:
+            neg = 1;
+            if hero.jumpCount < 0:
+                neg = -1
+            hero.y -= (hero.jumpCount ** 2) * 0.5 * neg;
+            hero.jumpCount -= 1;
+
+        else:
+            hero.isJump = False;
+            hero.jumpCount = 10;
+
     if keys[pygame.K_DOWN]:
         if not (hero.isSlide):
             hero.isSlide = True
+    
+    
     clock.tick(fps);
