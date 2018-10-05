@@ -180,11 +180,22 @@ class terrain(object):
         self.y = y;
         self.w = w;
         self.h = h;
-        self.hitbox = (self.x, self.y, self.w, self.h);
     
     def draw(self,window):
+        self.hitbox = (self.x + 8, self.y + 6, 50, 66);
         window.blit(self.block,(self.x,self.y));
         pygame.draw.rect(window,(255,0,0), self.hitbox,2);
+        pygame.draw.rect(window,(255,0,0), self.hitbox,2);
+
+    def collision(self,what):
+        if what.hitbox[1] < self.hitbox[1] + self.hitbox[3] and what.hitbox[1] + what.hitbox[3] > self.hitbox[1]:
+            if what.hitbox[0] + what.hitbox[2] > self.hitbox[0] and what.hitbox[0] < self.hitbox[0] + self.hitbox[2]:
+                hitSound.play();
+                return True
+        else:
+            return False
+        
+                
 
 def redrawGame():
     ''' Draws the game '''
@@ -195,6 +206,8 @@ def redrawGame():
     platform.draw(window)
     text = font.render("Score: %s"%score,1,(255,255,255))
     window.blit(text, (370,10));
+    for b in blocks:
+        b.draw(window);
     for bullet in bullets:
         bullet.draw(window);
     pygame.display.update();
@@ -206,9 +219,11 @@ fps = 30
 shootLoop = 0;
 score = 0
 pygame.time.set_timer(USEREVENT+1,1000*60); #half second = 500
+pygame.time.set_timer(USEREVENT+2,2000); 
+blocks = []
 
 hero = player(200,410,64,64);
-goblin = enemy(100,410,64,64,450) #needs to add random event + coords
+goblin = enemy(400,410,64,64,600) #needs to add random event + coords
 platform = terrain(300,300,64,64)
 
 
@@ -216,7 +231,15 @@ game = True;
 
 while game:
     redrawGame();
-    
+
+    for b in blocks:
+        if hero.x > screen_w/2:
+            b.x -= 1.4
+            if b.x < b.w *-1:
+                blocks.pop(blocks.index(b));
+        if b.collision(hero):
+            hero.collision(b.x,b.y,b.w,b.h)
+
     #COLLISION platform player
     if hero.hitbox[1] < platform.hitbox[1] + platform.hitbox[3] and hero.hitbox[1] + hero.hitbox[3] > platform.hitbox[1]:
         if hero.hitbox[0] + hero.hitbox[2] > platform.hitbox[0] and hero.hitbox[0] < platform.hitbox[0] + platform.hitbox[2]:
@@ -251,7 +274,7 @@ while game:
             bullet.x += bullet.vel
         else:
             bullets.pop(bullets.index(bullet));
-    #EVENTS
+    #EVENTS +1
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             game = False;
@@ -259,6 +282,9 @@ while game:
             quit()
     if event.type == USEREVENT+1:
         fps += 1
+    #EVENTS +2
+    if event.type == USEREVENT+2:
+        blocks.append(terrain(100,300,64,64))
 
     #KEYS press
     keys = pygame.key.get_pressed();
