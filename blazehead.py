@@ -145,7 +145,7 @@ while game:
                     score += 1;
                     bullets.pop(bullets.index(bullet));
         '''
-        if bullet.x < 500 and bullet.x > 0:
+        if bullet.x < screen_w and bullet.x > 0:
             bullet.x += bullet.vel
         else:
             bullets.pop(bullets.index(bullet));
@@ -169,7 +169,7 @@ while game:
         else:
             facing = 1
 
-        if len(bullets) < 5 :
+        if len(bullets) < 3 :
             bullets.append(projectile(round(hero.x + hero.w //2), round(hero.y+hero.h//2), 6, (0,94,255), facing))
         shootLoop = 1;
     
