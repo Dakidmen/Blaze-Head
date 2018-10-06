@@ -217,14 +217,16 @@ class terrain(object):
         else:
             return False
         
-def events(metters, what):
+def events(distance, what):
     if what == blocks:
-        n = 5
+        m = 5
     if what == fps:
-        n = 500
+        m = 500
     if what == enemies:
-        n = 50
-    if metter == n:
+        m = 50
+    if what == use_space:
+        m = 30
+    if m == distance:
         return True
     else:
         return False
@@ -236,7 +238,7 @@ def redrawGame():
     hero.draw(window);
     text = font.render("Score: %s"%score,1,(255,255,255))
     window.blit(text, (370,10));
-    counter = font.render("Metters: %s"%metters,1,(255,255,255))
+    counter = font.render("distance: %s"%distance,1,(255,255,255))
     window.blit(counter, (0,10));
     for e in enemies:
         e.draw(window);
@@ -247,7 +249,7 @@ def redrawGame():
     pygame.display.update();
 
 #GAME variables
-metters = 0;
+distance = 0;
 font = pygame.font.SysFont('comicsans',30,True);
 bullets = [];
 fps = 60
@@ -256,9 +258,10 @@ score = 0
 blocks = []
 hero = player(200,410,64,64);
 enemies = []
+use_space = []
 
 game = True;
-
+space_event = False;
 while game:
     redrawGame();
     
@@ -312,30 +315,35 @@ while game:
             pygame.quit()
             quit()
     #EVENTS fps increase
-    if events(metters,fps) == True:
+    if events(distance,fps) == True:
         fps += 15
 
     #EVENTS block spawn
-    if events(metters,blocks) == True:
+    if events(distance,blocks) == True:
         blocks.append(terrain(screen_w-64,300,64,64))
 
     #EVENTS enemy spawn
-    if events(metters,enemies) == True:
+    if events(distance,enemies) == True:
         enemies.append(enemy(screen_w-64,410,64,64,190,'left'))
-    #KEYS press
+
+    #EVENTS space
+    if events(distance,use_space) == True:
+        space_event = True;
+
+    #KEYS press:
     keys = pygame.key.get_pressed();
+    #space
+    if space_event == True:
+        if keys[pygame.K_SPACE] and shootLoop == 0:
+            if hero.left :
+                facing = -1
+            else:
+                facing = 1
 
-    #shoot
-    if keys[pygame.K_SPACE] and shootLoop == 0:
-        if hero.left :
-            facing = -1
-        else:
-            facing = 1
-
-        if len(bullets) < 3 :
-            bulletSound.play();
-            bullets.append(projectile(round(hero.x + hero.w //2), round(hero.y+hero.h//2), 6, (0,94,255), facing))
-        shootLoop = 1;
+            if len(bullets) < 3 :
+                bulletSound.play();
+                bullets.append(projectile(round(hero.x + hero.w //2), round(hero.y+hero.h//2), 6, (0,94,255), facing))
+            shootLoop = 1;
     
     #left
     if keys[pygame.K_LEFT] and hero.x > hero.vel:
@@ -353,7 +361,7 @@ while game:
         hero.standing = False;
 
         if hero.x > screen_w/2:
-            metters += 1;
+            distance += 1;
             hero.move = False;
             bgX -= 3.4
             bgX2 -= 3.4
@@ -367,7 +375,7 @@ while game:
         hero.standing = True;
         hero.runCount = 0
     
-    #jump
+    #up
     if not (hero.isJump):
         if keys[pygame.K_UP]:
             hero.isJump = True;
