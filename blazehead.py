@@ -201,8 +201,13 @@ class terrain(object):
         else:
             return False
         
-def event_block(count):
-    if count == 5:
+def events(count, what):
+    if what == blocks:
+        n = 5
+    if what == fps:
+        n = 100
+
+    if count == n:
         return True
     else:
         return False
@@ -215,6 +220,8 @@ def redrawGame():
     goblin.draw(window)
     text = font.render("Score: %s"%score,1,(255,255,255))
     window.blit(text, (370,10));
+    counter = font.render("Metters: %s"%steps,1,(255,255,255))
+    window.blit(counter, (0,10));
     for b in blocks:
         b.draw(window);
     for bullet in bullets:
@@ -227,10 +234,8 @@ font = pygame.font.SysFont('comicsans',30,True);
 bullets = [];
 fps = 30
 shootLoop = 0;
-score = 0
-pygame.time.set_timer(USEREVENT+1,1000*60); #half second = 500 
+score = 0 
 blocks = []
-pygame.time.set_timer(USEREVENT+2,1000*2)
 hero = player(200,410,64,64);
 goblin = enemy(400,410,64,64,600) #needs to add random event + coords
 #platform = terrain(300,300,64,64)
@@ -282,16 +287,18 @@ while game:
                 hero.hit();
                 score -= 5;
 
-    #EVENTS +1
+    #EVENTS quit
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             game = False;
             pygame.quit()
             quit()
-    if event.type == USEREVENT+1:
-        fps += 1
-    #EVENTS +2
-    if event_block(steps) == True:
+    #EVENTS fps increase
+    if events(steps,fps) == True:
+        fps += 15
+
+    #EVENTS block spawn
+    if events(steps,blocks) == True:
         blocks.append(terrain(screen_w-64,300,64,64))
 
     #KEYS press
