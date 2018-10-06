@@ -27,7 +27,7 @@ class player(object):
     jump = pygame.image.load('data/char/standing.png');
     walkRight = [pygame.image.load('data/char/R1.png'),pygame.image.load('data/char/R2.png'),pygame.image.load('data/char/R3.png'),pygame.image.load('data/char/R4.png'),pygame.image.load('data/char/R5.png'),pygame.image.load('data/char/R6.png'),pygame.image.load('data/char/R7.png'),pygame.image.load('data/char/R8.png'),pygame.image.load('data/char/R9.png')];
     walkLeft = [pygame.image.load('data/char/L1.png'),pygame.image.load('data/char/L2.png'),pygame.image.load('data/char/L3.png'),pygame.image.load('data/char/L4.png'),pygame.image.load('data/char/L5.png'),pygame.image.load('data/char/L6.png'),pygame.image.load('data/char/L7.png'),pygame.image.load('data/char/L8.png'),pygame.image.load('data/char/L9.png')]
-    char = pygame.image.load('data/char/Standing.png')
+    char = pygame.image.load('data/char/standing.png')
 
     def __init__(self, x, y, w, h):
         '''Hero'''
@@ -236,6 +236,21 @@ def jumpFunction(keys):
             hero.isJump = False;
             hero.jumpCount = 10; 
 
+class messages(object):
+    #MESSAGES variables
+    message01 = pygame.image.load('data/messages/01.png')
+    def __init__(self,message,x,y,w,h):
+        self.message = message
+        self.x = x
+        self.y = y
+        self.w = w;
+        self.h = h;
+        self.text = ''
+
+    def draw(self,window):
+        if self.message == '01':
+            window.blit(self.message01,(self.x,self.y));
+
 def events(distance, what):
     if what == blocks:
         m = 5
@@ -257,7 +272,10 @@ def redrawGame():
     hero.draw(window);
     text = font.render("Score: %s"%score,1,(255,255,255))
     window.blit(text, (370,10));
-    counter = font.render("distance: %s"%distance,1,(255,255,255))
+    if distance < 1000:
+        counter = font.render(" %sm"%(distance),1,(255,255,255))
+    else:
+        counter = font.render(" %skm"%(distance/1000),1,(255,255,255))
     window.blit(counter, (0,10));
     for e in enemies:
         e.draw(window);
@@ -265,9 +283,16 @@ def redrawGame():
         b.draw(window);
     for bullet in bullets:
         bullet.draw(window);
+    #MESSAGES:
+    for n in notes:
+        n.draw(window)
+    
     pygame.display.update();
+    
+    
 
 #GAME variables
+distance_unit = 'm'
 distance = 0;
 font = pygame.font.SysFont('comicsans',30,True);
 bullets = [];
@@ -278,11 +303,24 @@ blocks = []
 hero = player(200,410,64,64);
 enemies = []
 use_space = []
+notes = []
+
+notes.append(messages('01',100,50,64,64))
 
 game = True;
 space_event = False;
 while game:
+
+    if distance >= 1000:
+        distance_unit = 'km'
     redrawGame();
+
+    #NOTES / MESSAGES:
+    for m in notes:
+        if hero.x > screen_w/2 and keys[pygame.K_RIGHT]:
+            m.x -= 3.4
+            if m.x < m.w *-1:
+                notes.pop(notes.index(m));
     
     #BULLET COOLDOWN:
     if shootLoop > 0:
@@ -422,3 +460,7 @@ while game:
     
     
     clock.tick(fps);
+
+    #END GAME:
+    if distance == 2001:
+        game = False;
