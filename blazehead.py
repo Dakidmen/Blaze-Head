@@ -128,7 +128,7 @@ class enemy(object):
     walkRight = [pygame.image.load('data/enemy/R1E.png'),pygame.image.load('data/enemy/R2E.png'),pygame.image.load('data/enemy/R3E.png'),pygame.image.load('data/enemy/R4E.png'),pygame.image.load('data/enemy/R5E.png'),pygame.image.load('data/enemy/R6E.png'),pygame.image.load('data/enemy/R7E.png'),pygame.image.load('data/enemy/R8E.png'),pygame.image.load('data/enemy/R9E.png'),pygame.image.load('data/enemy/R10E.png'),pygame.image.load('data/enemy/R11E.png')];
     walkLeft = [pygame.image.load('data/enemy/L1E.png'),pygame.image.load('data/enemy/L2E.png'),pygame.image.load('data/enemy/L3E.png'),pygame.image.load('data/enemy/L4E.png'),pygame.image.load('data/enemy/L5E.png'),pygame.image.load('data/enemy/L6E.png'),pygame.image.load('data/enemy/L7E.png'),pygame.image.load('data/enemy/L8E.png'),pygame.image.load('data/enemy/L9E.png'),pygame.image.load('data/enemy/L10E.png'),pygame.image.load('data/enemy/L11E.png')];
     
-    def __init__(self, x, y, width, height, end):
+    def __init__(self, x, y, width, height, end,direction):
         self.x = x;
         self.y = y;
         self.width = width;
@@ -140,9 +140,10 @@ class enemy(object):
         self.hitbox = (self.x +17, self.y +2, 31, 57);
         self.health = 10;
         self.visible = True;
+        self.direction = direction;
 
     def draw(self,win):
-        self.move()
+        self.move(self.direction)
         if self.visible == True:
             if self.walkCount + 1 >= 33:
                 self.walkCount = 0;
@@ -157,21 +158,36 @@ class enemy(object):
             pygame.draw.rect(win, (255,0,0), (self.hitbox[0], self.hitbox[1]-20, 50, 10));
             pygame.draw.rect(win, (0,255,0), (self.hitbox[0], self.hitbox[1]-20, 50-((50/10)*(10-self.health)), 10));
             self.hitbox = (self.x +17, self.y +2, 31, 57);
-            #pygame.draw.rect(win,(255,0,0), self.hitbox,2);
+            pygame.draw.rect(win,(255,0,0), self.hitbox,2);
 
-    def move(self):
-        if self.vel > 0:
-            if self.x + self.vel < self.path[1]:
-                self.x += self.vel;
+    def move(self,direction):
+        if self.direction == 'right':
+            if self.vel > 0:
+                if self.x + self.vel < self.path[1]:
+                    self.x += self.vel;
+                else:
+                    self.vel = self.vel * -1;
+                    self.walkCount = 0;
             else:
-                self.vel = self.vel * -1;
-                self.walkCount = 0;
-        else:
-            if self.x - self.vel > self.path[0]:
-                self.x += self.vel
+                if self.x - self.vel > self.path[0]:
+                    self.x += self.vel
+                else:
+                    self.vel = self.vel * -1;
+                    self.walkCount = 0;
+        if self.direction == 'left':
+            if self.vel < 0:
+                if self.x + self.vel > self.path[1]:
+                    self.x += self.vel;
+                else:
+                    self.vel = self.vel * -1;
+                    self.walkCount = 0;
             else:
-                self.vel = self.vel * -1;
-                self.walkCount = 0;
+                if self.x + self.vel < self.path[0]:
+                    self.x += self.vel
+                else:
+                    self.vel = self.vel * -1;
+                    self.walkCount = 0;
+
     def hit(self):
         if self.health > 0:
             self.health -= 1;
@@ -206,7 +222,8 @@ def events(count, what):
         n = 5
     if what == fps:
         n = 100
-
+    if what == enemies:
+        n = 50
     if count == n:
         return True
     else:
@@ -217,11 +234,12 @@ def redrawGame():
     window.blit(background, (bgX,0))
     window.blit(background, (bgX2,0))
     hero.draw(window);
-    goblin.draw(window)
     text = font.render("Score: %s"%score,1,(255,255,255))
     window.blit(text, (370,10));
     counter = font.render("Metters: %s"%steps,1,(255,255,255))
     window.blit(counter, (0,10));
+    for e in enemies:
+        e.draw(window);
     for b in blocks:
         b.draw(window);
     for bullet in bullets:
@@ -237,9 +255,7 @@ shootLoop = 0;
 score = 0 
 blocks = []
 hero = player(200,410,64,64);
-goblin = enemy(400,410,64,64,600) #needs to add random event + coords
-#platform = terrain(300,300,64,64)
-
+enemies = []
 
 game = True;
 
@@ -259,17 +275,18 @@ while game:
                 hitSound.play();
                 bullets.pop(bullets.index(bullet));
         #collision
-        if goblin.visible == True:
-            #hitbox within x and y = collision
-            if bullet.collision(goblin) == True:
-                    hitSound.play();
-                    goblin.hit();
-                    score += 1;
-                    bullets.pop(bullets.index(bullet));
-        if bullet.x < screen_w and bullet.x > 0:
-            bullet.x += bullet.vel
-        else:
-            bullets.pop(bullets.index(bullet));
+        for e in enemies:
+            if e.visible == True:
+                #hitbox within x and y = collision
+                if bullet.collision(e) == True:
+                        hitSound.play();
+                        e.hit();
+                        score += 1;
+                        bullets.pop(bullets.index(bullet));
+            if bullet.x < screen_w and bullet.x > 0:
+                bullet.x += bullet.vel
+            else:
+                bullets.pop(bullets.index(bullet));
             
     for b in blocks:
         if hero.x > screen_w/2 and keys[pygame.K_RIGHT]:
@@ -280,12 +297,13 @@ while game:
             hero.collision(b.x,b.y,b.w,b.h)
 
     #COLLISION goblin player
-    if goblin.visible == True:
-        #hitbox within x and y = collision
-        if hero.hitbox[1] < goblin.hitbox[1] + goblin.hitbox[3] and hero.hitbox[1] + hero.hitbox[3] > goblin.hitbox[1]:
-            if hero.hitbox[0] + hero.hitbox[2] > goblin.hitbox[0] and hero.hitbox[0] < goblin.hitbox[0] + goblin.hitbox[2]:
-                hero.hit();
-                score -= 5;
+    for e in enemies:
+        if e.visible == True:
+            #hitbox within x and y = collision
+            if hero.hitbox[1] < e.hitbox[1] + e.hitbox[3] and hero.hitbox[1] + hero.hitbox[3] > e.hitbox[1]:
+                if hero.hitbox[0] + hero.hitbox[2] > e.hitbox[0] and hero.hitbox[0] < e.hitbox[0] + e.hitbox[2]:
+                    hero.hit();
+                    score -= 5;
 
     #EVENTS quit
     for event in pygame.event.get():
@@ -301,6 +319,9 @@ while game:
     if events(steps,blocks) == True:
         blocks.append(terrain(screen_w-64,300,64,64))
 
+    #EVENTS enemy spawn
+    if events(steps,enemies) == True:
+        enemies.append(enemy(screen_w-64,410,64,64,0,'left'))
     #KEYS press
     keys = pygame.key.get_pressed();
 
