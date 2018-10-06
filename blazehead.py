@@ -216,16 +216,35 @@ class terrain(object):
                 return True
         else:
             return False
-        
+
+def jumpFunction(keys):
+    if not (hero.isJump):
+        if keys[pygame.K_UP]:
+            hero.isJump = True;
+            hero.right = False;
+            hero.left = False;
+            hero.runCount = 0;
+    else:
+        if hero.jumpCount >= -10:
+            neg = 1;
+            if hero.jumpCount < 0:
+                neg = -1
+            hero.y -= (hero.jumpCount ** 2) * 0.5 * neg;
+            hero.jumpCount -= 1;
+
+        else:
+            hero.isJump = False;
+            hero.jumpCount = 10; 
+
 def events(distance, what):
     if what == blocks:
         m = 5
     if what == fps:
         m = 500
     if what == enemies:
-        m = 50
+        m = 75
     if what == use_space:
-        m = 30
+        m = 20
     if m == distance:
         return True
     else:
@@ -286,18 +305,20 @@ while game:
                         e.hit();
                         score += 1;
                         bullets.pop(bullets.index(bullet));
-            if bullet.x < screen_w and bullet.x > 0:
-                bullet.x += bullet.vel
-            else:
-                bullets.pop(bullets.index(bullet));
+        if bullet.x < screen_w and bullet.x > 0:
+            bullet.x += bullet.vel
+        else:
+            bullets.pop(bullets.index(bullet));
             
     for b in blocks:
         if hero.x > screen_w/2 and keys[pygame.K_RIGHT]:
             b.x -= 1.4
             if b.x < b.w *-1:
                 blocks.pop(blocks.index(b));
+        #COLLISION blocks player
         if b.collision(hero):
             hero.collision(b.x,b.y,b.w,b.h)
+            jumpFunction(keys)
 
     #COLLISION goblin player
     for e in enemies:
