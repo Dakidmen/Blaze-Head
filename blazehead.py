@@ -116,7 +116,13 @@ class projectile(object):
             window.blit(self.bullet_left, (self.x-50, self.y-25))
         else:
             window.blit(self.bullet_right, (self.x, self.y-25))
-
+    def collision(self,what):
+        if bullet.y - bullet.radius < what.hitbox[1] + what.hitbox[3] and bullet.y + bullet.radius > what.hitbox[1]:
+                if bullet.x + bullet.radius > what.hitbox[0] and bullet.x - bullet.radius < what.hitbox[0] + what.hitbox[2]:
+                    return True
+        else:
+            return False
+            
 class enemy(object):
     '''Goblin'''
     walkRight = [pygame.image.load('data/enemy/R1E.png'),pygame.image.load('data/enemy/R2E.png'),pygame.image.load('data/enemy/R3E.png'),pygame.image.load('data/enemy/R4E.png'),pygame.image.load('data/enemy/R5E.png'),pygame.image.load('data/enemy/R6E.png'),pygame.image.load('data/enemy/R7E.png'),pygame.image.load('data/enemy/R8E.png'),pygame.image.load('data/enemy/R9E.png'),pygame.image.load('data/enemy/R10E.png'),pygame.image.load('data/enemy/R11E.png')];
@@ -234,7 +240,32 @@ game = True;
 
 while game:
     redrawGame();
+    
+    #BULLET COOLDOWN:
+    if shootLoop > 0:
+        shootLoop += 1;
+    if shootLoop > 3:
+        shootLoop = 0;
 
+    #BULLETS:
+    for bullet in bullets:
+        for b in blocks:
+            if bullet.collision(b) == True:
+                hitSound.play();
+                bullets.pop(bullets.index(bullet));
+        #collision
+        if goblin.visible == True:
+            #hitbox within x and y = collision
+            if bullet.collision(goblin) == True:
+                    hitSound.play();
+                    goblin.hit();
+                    score += 1;
+                    bullets.pop(bullets.index(bullet));
+        if bullet.x < screen_w and bullet.x > 0:
+            bullet.x += bullet.vel
+        else:
+            bullets.pop(bullets.index(bullet));
+            
     for b in blocks:
         if hero.x > screen_w/2 and keys[pygame.K_RIGHT]:
             b.x -= 1.4
@@ -251,28 +282,6 @@ while game:
                 hero.hit();
                 score -= 5;
 
-    #BULLET COOLDOWN:
-    if shootLoop > 0:
-        shootLoop += 1;
-    if shootLoop > 3:
-        shootLoop = 0;
-
-    #BULLETS:
-    for bullet in bullets:
-        #collision
-        if goblin.visible == True:
-            #hitbox within x and y = collision
-            if bullet.y - bullet.radius < goblin.hitbox[1] + goblin.hitbox[3] and bullet.y + bullet.radius > goblin.hitbox[1]:
-                if bullet.x + bullet.radius > goblin.hitbox[0] and bullet.x - bullet.radius < goblin.hitbox[0] + goblin.hitbox[2]:
-                    hitSound.play();
-                    goblin.hit();
-                    score += 1;
-                    bullets.pop(bullets.index(bullet));
-        
-        if bullet.x < screen_w and bullet.x > 0:
-            bullet.x += bullet.vel
-        else:
-            bullets.pop(bullets.index(bullet));
     #EVENTS +1
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
