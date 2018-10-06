@@ -217,14 +217,14 @@ class terrain(object):
         else:
             return False
         
-def events(count, what):
+def events(metters, what):
     if what == blocks:
         n = 5
     if what == fps:
-        n = 100
+        n = 500
     if what == enemies:
         n = 50
-    if count == n:
+    if metter == n:
         return True
     else:
         return False
@@ -236,7 +236,7 @@ def redrawGame():
     hero.draw(window);
     text = font.render("Score: %s"%score,1,(255,255,255))
     window.blit(text, (370,10));
-    counter = font.render("Metters: %s"%steps,1,(255,255,255))
+    counter = font.render("Metters: %s"%metters,1,(255,255,255))
     window.blit(counter, (0,10));
     for e in enemies:
         e.draw(window);
@@ -247,10 +247,10 @@ def redrawGame():
     pygame.display.update();
 
 #GAME variables
-steps = 0;
+metters = 0;
 font = pygame.font.SysFont('comicsans',30,True);
 bullets = [];
-fps = 30
+fps = 60
 shootLoop = 0;
 score = 0 
 blocks = []
@@ -312,16 +312,16 @@ while game:
             pygame.quit()
             quit()
     #EVENTS fps increase
-    if events(steps,fps) == True:
+    if events(metters,fps) == True:
         fps += 15
 
     #EVENTS block spawn
-    if events(steps,blocks) == True:
+    if events(metters,blocks) == True:
         blocks.append(terrain(screen_w-64,300,64,64))
 
     #EVENTS enemy spawn
-    if events(steps,enemies) == True:
-        enemies.append(enemy(screen_w-64,410,64,64,0,'left'))
+    if events(metters,enemies) == True:
+        enemies.append(enemy(screen_w-64,410,64,64,190,'left'))
     #KEYS press
     keys = pygame.key.get_pressed();
 
@@ -353,7 +353,7 @@ while game:
         hero.standing = False;
 
         if hero.x > screen_w/2:
-            steps += 1;
+            metters += 1;
             hero.move = False;
             bgX -= 3.4
             bgX2 -= 3.4
