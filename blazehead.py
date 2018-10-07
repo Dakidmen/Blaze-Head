@@ -155,10 +155,10 @@ class enemy(object):
                 win.blit(self.walkLeft[self.walkCount //3], (self.x, self.y))
                 self.walkCount += 1;
             
-            pygame.draw.rect(win, (255,0,0), (self.hitbox[0], self.hitbox[1]-20, 50, 10));
-            pygame.draw.rect(win, (0,255,0), (self.hitbox[0], self.hitbox[1]-20, 50-((50/10)*(10-self.health)), 10));
+            #pygame.draw.rect(win, (255,0,0), (self.hitbox[0], self.hitbox[1]-20, 50, 10));
+            #pygame.draw.rect(win, (0,255,0), (self.hitbox[0], self.hitbox[1]-20, 50-((50/10)*(10-self.health)), 10));
             self.hitbox = (self.x +17, self.y +2, 31, 57);
-            pygame.draw.rect(win,(255,0,0), self.hitbox,2);
+            #pygame.draw.rect(win,(255,0,0), self.hitbox,2);
 
     def move(self,direction):
         if self.direction == 'right':
@@ -206,13 +206,12 @@ class terrain(object):
     def draw(self,window):
         self.hitbox = (self.x + 8, self.y + 6, 50, 66);
         window.blit(self.block,(self.x,self.y));
-        pygame.draw.rect(window,(255,0,0), self.hitbox,2);
-        pygame.draw.rect(window,(255,0,0), self.hitbox,2);
+        #pygame.draw.rect(window,(255,0,0), self.hitbox,2);
+        #pygame.draw.rect(window,(255,0,0), self.hitbox,2);
 
     def collision(self,what):
         if what.hitbox[1] < self.hitbox[1] + self.hitbox[3] and what.hitbox[1] + what.hitbox[3] > self.hitbox[1]:
             if what.hitbox[0] + what.hitbox[2] > self.hitbox[0] and what.hitbox[0] < self.hitbox[0] + self.hitbox[2]:
-                #hitSound.play();
                 return True
         else:
             return False
@@ -255,7 +254,7 @@ def events(distance, what):
     if what == blocks:
         m = 5
     if what == fps:
-        m = 500
+        m = 333
     if what == enemies:
         m = 75
     if what == use_space:
@@ -296,7 +295,7 @@ distance_unit = 'm'
 distance = 0;
 font = pygame.font.SysFont('comicsans',30,True);
 bullets = [];
-fps = 60
+fps = 30
 shootLoop = 0;
 score = 0 
 blocks = []
@@ -375,7 +374,7 @@ while game:
             quit()
     #EVENTS fps increase
     if events(distance,fps) == True:
-        fps += 15
+        fps = 60
 
     #EVENTS block spawn
     if events(distance,blocks) == True:
