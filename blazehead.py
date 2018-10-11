@@ -155,8 +155,8 @@ class enemy(object):
                 win.blit(self.walkLeft[self.walkCount //3], (self.x, self.y))
                 self.walkCount += 1;
             
-            #pygame.draw.rect(win, (255,0,0), (self.hitbox[0], self.hitbox[1]-20, 50, 10));
-            #pygame.draw.rect(win, (0,255,0), (self.hitbox[0], self.hitbox[1]-20, 50-((50/10)*(10-self.health)), 10));
+            pygame.draw.rect(win, (255,0,0), (self.hitbox[0], self.hitbox[1]-20, 50, 10));
+            pygame.draw.rect(win, (0,255,0), (self.hitbox[0], self.hitbox[1]-20, 50-((50/10)*(10-self.health)), 10));
             self.hitbox = (self.x +17, self.y +2, 31, 57);
             #pygame.draw.rect(win,(255,0,0), self.hitbox,2);
 
@@ -250,17 +250,69 @@ class messages(object):
         if self.message == '01':
             window.blit(self.message01,(self.x,self.y));
 
+class TetrisWheels(object):
+    def __init__(self,form,x,y,w,h):
+        self.form = form;
+        self.x = x;
+        self.y = y;
+        self.w = w;
+        self.h = h;
+        self.visible = 'True';
+        self.health = 3
+
+        if self.form == '1square':
+            self.image = pygame.image.load('data/terrain/tetris/1square.png');
+        elif self.form == '2squareVertical':
+            self.image = pygame.image.load('data/terrain/tetris/2squareVertical.png');
+        elif self.form == '2squareHorizontal':
+            self.image = pygame.image.load('data/terrain/tetris/2squareHorizontal.png');
+        elif self.form == '3L':
+            self.image = pygame.image.load('data/terrain/tetris/3L.png');
+        elif self.form == 'penis':
+            self.image = pygame.image.load('data/terrain/tetris/penis.png');
+        elif self.form == 'spaceship':
+            self.image = pygame.image.load('data/terrain/tetris/spaceship.png');
+        elif self.form == 'bigLVertical':
+            self.image = pygame.image.load('data/images/tetris/bigLVertical.png');
+        elif self.form == 'bigLHorizontal':
+            self.image = pygame.image.load('data/images/tetris/bigLHorizontal.png');
+        elif self.form == 'pistol':
+            self.image = pygame.image.load('data/images/tetris/pistol.png');
+
+    def draw(self,window):
+        window.blit(self.image, (self.x,self.y));
+        self.hitbox = (self.x + 8, self.y + 6, 50, 66);
+        pygame.draw.rect(window,(255,0,0), self.hitbox,2);
+        pygame.draw.rect(window,(255,0,0), self.hitbox,2);
+
+    def collision(self,what):
+        if what.hitbox[1] < self.hitbox[1] + self.hitbox[3] and what.hitbox[1] + what.hitbox[3] > self.hitbox[1]:
+            if what.hitbox[0] + what.hitbox[2] > self.hitbox[0] and what.hitbox[0] < self.hitbox[0] + self.hitbox[2]:
+                return True
+        else:
+            return False
+    def hit(self):
+        if self.health > 0:
+            self.health -= 1;
+        else:
+            self.visible = False;
+
 def events(distance, what):
-    if what == blocks:
-        m = 5
-    if what == fps:
-        m = 333
-    if what == enemies:
-        m = 75
-    if what == use_space:
-        m = 20
-    if m == distance:
-        return True
+    if distance == 120:
+        if what == 'blocks':
+            return True;
+    if distance == 20:
+        if what == 'tetris':
+            return True;
+    if distance == 1000:
+        if what == 'fps':
+            return True;
+    if distance == 500:
+        if what == 'enemies':
+            return True;
+    if distance == 0:
+        if what == 'space_use':
+            return True;
     else:
         return False
 
@@ -282,6 +334,8 @@ def redrawGame():
         b.draw(window);
     for bullet in bullets:
         bullet.draw(window);
+    for t in tetris:
+        t.draw(window);
     #MESSAGES:
     for n in notes:
         n.draw(window)
@@ -303,11 +357,12 @@ hero = player(200,410,64,64);
 enemies = []
 use_space = []
 notes = []
+tetris = [];
 
 notes.append(messages('01',100,50,64,64))
 
 game = True;
-space_event = False;
+space_event = True;
 while game:
 
     if distance >= 1000:
@@ -333,10 +388,18 @@ while game:
             if bullet.collision(b) == True:
                 hitSound.play();
                 bullets.pop(bullets.index(bullet));
-        #collision
+        #collision tetris bullet
+        for t in tetris:
+            #hitbox within x and y = collision
+            if t.visible == True:
+                if bullet.collision(t) == True:
+                        hitSound.play();
+                        t.hit()
+                        score += 1;
+                        bullets.pop(bullets.index(bullet));
+        #collision enemies bullet
         for e in enemies:
             if e.visible == True:
-                #hitbox within x and y = collision
                 if bullet.collision(e) == True:
                         hitSound.play();
                         e.hit();
@@ -356,7 +419,11 @@ while game:
         if b.collision(hero):
             hero.collision(b.x,b.y,b.w,b.h)
             jumpFunction(keys)
-
+    #Tetris:
+    for t in tetris:
+        t.x -= 1.4
+        if t.x < t.w *-1:
+            tetris.pop(tetris.index(t));
     #COLLISION goblin player
     for e in enemies:
         if e.visible == True:
@@ -373,16 +440,20 @@ while game:
             pygame.quit()
             quit()
     #EVENTS fps increase
-    if events(distance,fps) == True:
+    if events(distance,'fps') == True:
         fps = 60
 
     #EVENTS block spawn
-    if events(distance,blocks) == True:
+    if events(distance,'blocks') == True:
         blocks.append(terrain(screen_w-64,300,64,64))
 
     #EVENTS enemy spawn
-    if events(distance,enemies) == True:
+    if events(distance,'enemies') == True:
         enemies.append(enemy(screen_w-64,410,64,64,190,'left'))
+    #EVENTS tetris:
+    if events(distance, 'tetris') == True:
+        tetris.append(TetrisWheels('3L',screen_w-64,200,64,64))
+
 
     #EVENTS space
     if events(distance,use_space) == True:
