@@ -257,8 +257,8 @@ class TetrisWheels(object):
         self.y = y;
         self.w = w;
         self.h = h;
-        self.visible = 'True';
-        self.health = 3
+        self.visible = True;
+        self.health = 5;
 
         if self.form == '1square':
             self.image = pygame.image.load('data/terrain/tetris/1square.png');
@@ -280,10 +280,13 @@ class TetrisWheels(object):
             self.image = pygame.image.load('data/images/tetris/pistol.png');
 
     def draw(self,window):
-        window.blit(self.image, (self.x,self.y));
-        self.hitbox = (self.x + 8, self.y + 6, 50, 66);
-        pygame.draw.rect(window,(255,0,0), self.hitbox,2);
-        pygame.draw.rect(window,(255,0,0), self.hitbox,2);
+        if self.visible == True:
+            window.blit(self.image, (self.x,self.y));
+            if self.form == '1square':
+                self.hitbox = (self.x+60, 225, 70, 70);
+            else:
+                self.hitbox = (self.x+60, 225, 70, 70);
+            #pygame.draw.rect(window,(255,0,0), self.hitbox,2);
 
     def collision(self,what):
         if what.hitbox[1] < self.hitbox[1] + self.hitbox[3] and what.hitbox[1] + what.hitbox[3] > self.hitbox[1]:
@@ -291,9 +294,9 @@ class TetrisWheels(object):
                 return True
         else:
             return False
-    def hit(self):
+    def hit(self,dmg):
         if self.health > 0:
-            self.health -= 1;
+            self.health -= dmg;
         else:
             self.visible = False;
 
@@ -394,7 +397,7 @@ while game:
             if t.visible == True:
                 if bullet.collision(t) == True:
                         hitSound.play();
-                        t.hit()
+                        t.hit(1)
                         score += 1;
                         bullets.pop(bullets.index(bullet));
         #collision enemies bullet
@@ -405,6 +408,7 @@ while game:
                         e.hit();
                         score += 1;
                         bullets.pop(bullets.index(bullet));
+
         if bullet.x < screen_w and bullet.x > 0:
             bullet.x += bullet.vel
         else:
@@ -452,7 +456,7 @@ while game:
         enemies.append(enemy(screen_w-64,410,64,64,190,'left'))
     #EVENTS tetris:
     if events(distance, 'tetris') == True:
-        tetris.append(TetrisWheels('3L',screen_w-64,200,64,64))
+        tetris.append(TetrisWheels('1square',screen_w-64,150,64,64))
 
 
     #EVENTS space
