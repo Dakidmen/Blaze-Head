@@ -301,7 +301,7 @@ class TetrisWheels(object):
             self.visible = False;
 
 def events(distance, what):
-    if distance == 120:
+    if distance == 200:
         if what == 'blocks':
             return True;
     if distance == 20:
@@ -425,9 +425,17 @@ while game:
             jumpFunction(keys)
     #Tetris:
     for t in tetris:
-        t.x -= 1.4
-        if t.x < t.w *-1:
-            tetris.pop(tetris.index(t));
+        if 0 <= t.x <= 20:
+            t.x = 0;
+            
+        else:
+            t.x -= 1.4
+            if t.x < t.w *-1:
+                tetris.pop(tetris.index(t));
+        if t.collision(hero):
+            hero.collision(t.x,t.y,t.w,t.h)
+            t.hit(0.5);
+            jumpFunction(keys)
     #COLLISION goblin player
     for e in enemies:
         if e.visible == True:
